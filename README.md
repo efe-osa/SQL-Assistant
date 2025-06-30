@@ -1,17 +1,14 @@
 # SQL Assistant
 
-A SQL query assistant that helps users write, optimize, and understand SQL queries through natural language interaction.
+A SQL query assistant that helps users write, optimise, and understand SQL queries through natural language interaction.
 
 <https://sql-assistant.netlify.app/> [![Netlify Status](https://api.netlify.com/api/v1/badges/5c3dc2cc-29ea-4400-b80d-9d59c731c61b/deploy-status)](https://app.netlify.com/projects/sql-assistant/deploys)
-<https://sql-assistant-server.netlify.app/>[![Netlify Status](https://api.netlify.com/api/v1/badges/87f74d8b-6a28-4eb8-bd02-c051e6bd9604/deploy-status)](https://app.netlify.com/projects/sql-assistant-server/deploys)
 
 ## Features
 
-- Natural language to SQL query conversion
-- SQL query optimization suggestions
+- Natural language to SQL query 
+- SQL query optimisation suggestions
 - Query explanation and documentation
-- Interactive query building interface
-- Real-time query validation
 - Query history and management
 
 ## Project Structure
@@ -25,8 +22,7 @@ A SQL query assistant that helps users write, optimize, and understand SQL queri
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- Docker and Docker Compose
-- SQLite3 (for development)
+- Docker
 
 ## Getting Started
 
@@ -34,7 +30,7 @@ A SQL query assistant that helps users write, optimize, and understand SQL queri
 
    ``` bash
 
-   git clone https://github.com/yourusername/sql-assistant.git
+   git clone https://github.com/efe-osa/sql-assistant.git
    cd sql-assistant
    ```
 
@@ -59,7 +55,7 @@ A SQL query assistant that helps users write, optimize, and understand SQL queri
    ``` bash
    # Start the backend server
    cd server
-   cp .env.example .env.local
+   cp .env.example .env.development
    npm run dev
 
    # Start the frontend development server
