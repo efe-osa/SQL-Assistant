@@ -22,7 +22,7 @@ function App() {
   };
 
   const generateQuery = async () => {
-    const data = await apiFetch('/sql/generate', {
+    const data = await apiFetch('/generate', {
       method: 'POST',
       data: { queryDescription },
     });
@@ -30,7 +30,7 @@ function App() {
   };
 
   const askDatabase = async () => {
-    const data = await apiFetch('/sql/ask-database', {
+    const data = await apiFetch('/ask-database', {
       method: 'POST',
       data: { queryDescription },
     });
@@ -41,7 +41,7 @@ function App() {
     const url = prompt('Enter the URL of the database you want to add');
     const name = prompt('Enter the name of the database you want to add');
     if (url && name) {
-      const data = await apiFetch('/sql/add-database', {
+      const data = await apiFetch('/add-database', {
         method: 'POST',
         data: { databaseUrl: url, databaseName: name },
       });
