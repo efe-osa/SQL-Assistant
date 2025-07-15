@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import config from './config';
@@ -9,14 +8,16 @@ import { databaseManager } from './services/database.service';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 import { sqlRouter } from './routes/sql.routes';
+import { healthRouter } from './routes/health.routes';
 
 const app = express();
-const port = config.PORT;
 
 // Middleware
-app.use(helmet());
-app.use(cors());
 app.use(compression());
+app.use(cors({
+    origin: config.CORS_ORIGINS,
+    credentials: true,
+}));
 app.use(express.json());
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -24,12 +25,8 @@ app.use(rateLimit({
 }));
 
 // Routes
-app.use('/api/sql', sqlRouter);
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
-});
+app.use(healthRouter);
+app.use('/api/', sqlRouter)
 
 // Error handling
 app.use(errorHandler);
@@ -40,8 +37,8 @@ const startServer = async () => {
         // Initialize default database
         await databaseManager.initializeDefaultDatabase();
 
-        app.listen(port, () => {
-            logger.info(`Server is running on port ${port}`);
+        app.listen(config.PORT, () => {
+            logger.info(`Server is running on port ${config.PORT}`);
         });
     } catch (error) {
         logger.error('Failed to start server:', error);

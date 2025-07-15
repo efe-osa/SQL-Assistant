@@ -22,6 +22,7 @@ router.post('/ask-database', async (req: Request, res: Response) => {
     try {
         const { queryDescription } = req.body;
         const response = await aiService.generateNaturalLanguageResponse(queryDescription);
+        console.log("response:>>>>", response)
         res.json({ response });
     } catch (error) {
         console.log(error);
@@ -69,4 +70,4 @@ router.get('/databases', (req: Request, res: Response) => {
     }
 });
 
-export const sqlRouter = router;
+export { router as sqlRouter };
