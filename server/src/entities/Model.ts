@@ -11,7 +11,7 @@ export class Model {
     @Column({ length: 50 })
     model_name!: string;
 
-    @Column()
+    @Column({ nullable: true })
     model_base_price!: number;
 
     @Column()

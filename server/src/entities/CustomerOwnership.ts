@@ -18,7 +18,7 @@ export class CustomerOwnership {
     purchase_price!: number;
 
     @Column({ nullable: true })
-    warantee_expire_date!: Date;
+    warranty_expire_date!: Date;
 
     @Column()
     dealer_id!: number;
