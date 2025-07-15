@@ -1,51 +1,60 @@
-version: '3.8'
-
-networks:
-  sql-assistant-network:
-    driver: bridge
-
-volumes:
-  sqlite_data:
-
 services:
+  sqlite:
+    container_name: sqlite-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["tail", "-f", "/dev/null"]
+    # command: ["sqlite3", "/sqlite_data/cars.db"]
+    healthcheck:
+      test: ["CMD", "sqlite3", "/sqlite_data/cars.db", "SELECT 1;"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    volumes:
+      - type: bind
+        source: ./src/data/init.sql
+        target: /app/dist/data/init.sql
+    networks:
+      - sql-assistant-network
+
   backend:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile.dev
+    container_name: sql-assistant-backend
+    restart: unless-stopped
     ports:
       - "3001:3001"
-    environment:
-      - TOGETHERAI_API_KEY=${TOGETHERAI_API_KEY}
-      - TOGETHERAI_MODEL_NAME=${TOGETHERAI_MODEL_NAME}
-      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
-      - LANGCHAIN_CALLBACKS_BACKGROUND=${LANGCHAIN_CALLBACKS_BACKGROUND}
-      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT}
-      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
-      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
-      - SQLITE_DB_PATH=${SQLITE_DB_PATH}
-      - DB_DIR=${DB_DIR}
+    # environment:
+    #   - NODE_ENV=${NODE_ENV:-production}
+    #   - PORT=3001
+    #   - SQLITE_DB_PATH_DEFAULT=/app/sqlite_data/cars.db
+    #   - DB_DIR=/app/sqlite_data
+    #   - TOGETHERAI_API_KEY=${TOGETHERAI_API_KEY}
+    #   - TOGETHERAI_MODEL_NAME=${TOGETHERAI_MODEL_NAME:-meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo}
+    #   - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-true}
+    #   - LANGCHAIN_CALLBACKS_BACKGROUND=${LANGCHAIN_CALLBACKS_BACKGROUND:-true}
+    #   - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+    #   - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+    #   - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-sql-assistant}
+    #   - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+    #   - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+    #   - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
     env_file:
-      - .env.local
+      - .env.development
     depends_on:
       sqlite:
         condition: service_healthy
     networks:
       - sql-assistant-network
 
-  sqlite:
-    image: keinos/sqlite3:latest
-    container_name: sqlite-db
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./sqlite_data/car_db.sql:/db/car_db.sql
-      - ./sqlite_data:/db
-    entrypoint: >
-      sh -c "sqlite3 /db/cars.db << /db/car_db.sql && tail -f /dev/null"
-    healthcheck:
-      test: ["CMD", "sqlite3", "/db/cars.db", ".tables"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - sql-assistant-network
+networks:
+  sql-assistant-network:
+    name: sql-assistant-network
+    driver: bridge
+
+volumes:
+  sqlite_data:

@@ -1,32 +1,17 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Dockerfile
+FROM alpine:latest
 
-WORKDIR /app
+# SQLite
+RUN apk update && apk add sqlite
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci
+# Create a directory for SQLite data
+WORKDIR /sqlite_data/
 
-# Copy source code and build
-COPY . .
-RUN npm run build
+# Copy the initialization script
+# COPY ./sqlite_data/ .
 
-# Production stage
-FROM node:20-alpine AS production
+# RUN source init-cars-db.sh
 
-WORKDIR /app
-
-# Install curl for the init script
-RUN apk add --no-cache curl
-
-# Copy only necessary files from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-
-ENV NODE_ENV=production
-
-EXPOSE 3001
-
-# Start the initialization script in the background and then start the application
-CMD ["/bin/sh", "-c", "npm start"]
+# Set the default command to open SQLite
+# Note: SQLite is a serverless database, so it does not require a port to be exposed.
+CMD  ["sqlite3"]

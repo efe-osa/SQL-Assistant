@@ -28,7 +28,6 @@
     "langchain": "^0.1.25",
     "langsmith": "^0.3.30",
     "reflect-metadata": "^0.2.2",
-    "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20",
     "winston": "^3.11.0",
     "zod": "^3.22.4"

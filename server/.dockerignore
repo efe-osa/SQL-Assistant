@@ -30,8 +30,8 @@ Dockerfile*
 
 # Database files
 *.sqlite
-*.sql
-*.db
+#*.sql
+#*.db
 
 # Other
 .DS_Store
