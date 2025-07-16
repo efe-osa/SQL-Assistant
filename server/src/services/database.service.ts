@@ -17,6 +17,7 @@ class DatabaseManager {
     private static instance: DatabaseManager;
     private connections: Map<string, DatabaseConnection> = new Map();
     private defaultConnection: DatabaseConnection | null = null;
+    private defaultDBPath: string = path.join(__dirname, `../${config.DB_DIR}/${config.DB_NAME}`); // Adjust the path as needed
 
     private constructor() {}
 
@@ -31,33 +32,63 @@ class DatabaseManager {
         try {
             const dataSource = new DataSource({
                 type: 'sqlite',
-                database: config.SQLITE_DB_PATH,
+                database: this.defaultDBPath, // TODO: Adjust the path as needed
                 synchronize: true,
-                logging: true,
                 entities: [CarVin, CarOption, CarPart, Model, Brand, DealerBrand, ManufacturePlant, Customer, CustomerOwnership, Dealer]
             });
-
             await dataSource.initialize();
-            const sqlDb = await SqlDatabase.fromDataSourceParams({ appDataSource: dataSource });
+            await this.initDefaultDBScript(dataSource);
 
+            const sqlDb = await SqlDatabase.fromDataSourceParams({ appDataSource: dataSource });
             this.defaultConnection = {
-                name: 'default',
+                name: 'CarsDB',
                 dataSource,
                 sqlDb
             };
-
             this.connections.set('default', this.defaultConnection);
-            logger.info('Default database initialized successfully');
+            if (this.defaultConnection.dataSource.isInitialized) {
+                logger.info(`Default database ${this.defaultConnection.name} at ||>${this.defaultConnection.dataSource.options.database}<|| has been initialized successfully`);
+            }
+            else logger.error('Failed to initialize default database');
         } catch (error) {
             logger.error('Error initializing default database:', error);
             throw error;
         }
+
+    }
+    async initDefaultDBScript(dataSource: DataSource) {
+        //TODO: Refactor initDefaultDB
+        //
+        // Initialize the SQL database instance if the database is empty
+        const sqlScript = path.join(__dirname, `../${config.DB_DIR}/init-cars.sql`);
+
+        logger.info(`Checking if database at ${this.defaultDBPath} exists...`);
+        if (fs.existsSync(this.defaultDBPath)) {
+            logger.info(`Database file ${this.defaultDBPath} exists.`);
+        }
+
+        fs.readFile(sqlScript, 'utf8', (err, data) => {
+            if (err) {
+                logger.error('Error reading SQL file:', err);
+            }
+            dataSource.query(data)
+            .then(() => {
+                logger.info('SQL script executed successfully');
+            })
+            .catch(err => {
+                if (err instanceof Error) {
+                    logger.error('Error executing SQL query:', err.message);
+                } else {
+                    logger.error('Error executing SQL query:', err);
+                }
+            });
+    });
     }
 
     async addCustomDatabase(databaseUrl: string, databaseName: string): Promise<DatabaseConnection> {
         try {
             // Create databases directory if it doesn't exist
-            const databasesDir = path.join(process.cwd(), 'db');
+            const databasesDir = path.join(process.cwd(), config.DB_DIR);
             if (!fs.existsSync(databasesDir)) {
                 fs.mkdirSync(databasesDir, { recursive: true });
             }
@@ -68,16 +99,18 @@ class DatabaseManager {
                 url: databaseUrl,
                 responseType: 'arraybuffer'
             });
-
+            console.log("response:>>>>", response)
+            console.log("data:>>>>", response.data)
             // Save the database file to db directory
             const databasePath = path.join(databasesDir, `${databaseName}.db`);
+            console.log("databasePath:>>>>", databasePath)
             fs.writeFileSync(databasePath, response.data);
 
             // Create a new data source for the custom database
             const dataSource = new DataSource({
                 type: 'sqlite',
                 database: databasePath,
-                synchronize: false,
+                synchronize: config.NODE_ENV === 'development' ? true : false,
                 logging: true
             });
 

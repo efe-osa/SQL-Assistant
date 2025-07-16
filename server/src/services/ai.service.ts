@@ -30,8 +30,8 @@ class AIService {
 
     private initializeLLM(): void {
         this.llm = new ChatTogetherAI({
-            togetherAIApiKey: config.TOGETHER_API_KEY,
-            modelName: config.TOGETHER_MODEL_NAME,
+            togetherAIApiKey: config.TOGETHERAI_API_KEY,
+            modelName: config.TOGETHERAI_MODEL_NAME,
             temperature: 0.1,
             maxTokens: 1000
         });
@@ -39,7 +39,7 @@ class AIService {
 
     private initializePrompts(): void {
         this.sqlQueryPrompt = PromptTemplate.fromTemplate(
-            `Act as a SQL expert and use the table schemas and the specified table name in the user's question as a reference to generate the exact SQL query structure that would answer the user's question. Again, consider the table keyword provided in the question and return only the SQL query and nothing else:
+            `Act as a SQL expert and use the table schemas as a reference to generate the exact SQL query structure that would answer the user's question. Again, consider the table schemas and entity relationships and return only the SQL query and nothing else:
 
             Table Schemas:
             {schema}
@@ -98,6 +98,7 @@ class AIService {
     }
 
     async generateSQLQuery(userPrompt: string): Promise<string> {
+        // TODO: debug why this is returning an error
         try {
             const chainResult = await this.sqlQueryGeneratorChain.invoke({
                 question: userPrompt,
@@ -123,7 +124,9 @@ class AIService {
                     query: (input: { query: string }) => input.query.trim(),
                     response: async (input: { query: string }) => {
                         try {
-                            return await databaseManager.getDefaultConnection().sqlDb.run(input.query);
+                            const result = await databaseManager.getDefaultConnection().sqlDb.run(input.query);
+                            console.log("DB query result:>>>>", result)
+                            return result;
                         } catch (error) {
                             logger.error('Error executing SQL query:', error);
                             throw new Error('Failed to execute SQL query');
