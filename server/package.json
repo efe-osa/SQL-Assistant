@@ -16,7 +16,7 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@langchain/community": "^0.0.34",
+    "@langchain/community": "^0.3.48",
     "@langchain/core": "^0.1.63",
     "axios": "^1.9.0",
     "compression": "^1.7.4",
